@@ -2,6 +2,9 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -66,6 +69,39 @@ io.on('connection', (socket) => {
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('🔴 User disconnected:', socket.id);
+  });
+});
+// Python code execution endpoint
+app.post('/execute/python', (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    return res.status(400).json({ error: 'No code provided' });
+  }
+
+  // Create a temporary Python file
+  const tempFile = path.join(__dirname, `temp_${Date.now()}.py`);
+  
+  // Write code to temp file
+  fs.writeFileSync(tempFile, code);
+  
+  // Execute Python code with timeout (5 seconds)
+  exec(`python "${tempFile}"`, { timeout: 5000 }, (error, stdout, stderr) => {
+    // Delete temp file
+    fs.unlinkSync(tempFile);
+    
+    if (error) {
+      if (error.killed) {
+        return res.json({ error: 'Execution timed out (5 seconds limit)' });
+      }
+      return res.json({ error: stderr || error.message });
+    }
+    
+    if (stderr) {
+      return res.json({ error: stderr });
+    }
+    
+    res.json({ output: stdout });
   });
 });
 

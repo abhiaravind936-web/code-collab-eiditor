@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSocket } from './hooks/usesocket';
 import CodeEditor from './components/Editor/Editor';
 import Chat from './components/Chat/chat';
 import Output from './components/output/output';
+import MultiLanguageEditor from './components/MultiLanguageEditor/MultiLanguageEditor';
 import './App.css';
 
 function App() {
   const [roomId, setRoomId] = useState('');
   const [userId, setUserId] = useState('');
   const [joined, setJoined] = useState(false);
+  const [editorMode, setEditorMode] = useState('code'); // 'code' or 'web'
+  const [code, setCode] = useState('');
 
   const createRoom = () => {
     const newRoomId = Math.random().toString(36).substring(2, 8);
     const newUserId = `User_${Math.floor(Math.random() * 1000)}`;
-    console.log('Creating room:', newRoomId, 'User:', newUserId);
     setRoomId(newRoomId);
     setUserId(newUserId);
     setJoined(true);
@@ -23,13 +25,12 @@ function App() {
     e.preventDefault();
     if (roomId.trim()) {
       const newUserId = `User_${Math.floor(Math.random() * 1000)}`;
-      console.log('Joining room:', roomId, 'User:', newUserId);
       setUserId(newUserId);
       setJoined(true);
     }
   };
 
-  const { code, messages, sendCodeChange, sendMessage } = useSocket(
+  const { messages, sendMessage } = useSocket(
     joined ? roomId : null,
     joined ? userId : null
   );
@@ -39,7 +40,7 @@ function App() {
       <div className="app-container">
         <div className="landing">
           <h1 className="title">✨ Code Collab Editor ✨</h1>
-          <p className="subtitle">Real-time collaborative coding with friends</p>
+          <p className="subtitle">Multi-language collaborative coding with live preview</p>
           
           <div className="room-actions">
             <button onClick={createRoom} className="btn btn-primary">
@@ -82,13 +83,33 @@ function App() {
           </button>
         </div>
         
+        {/* Mode Selector */}
+        <div className="mode-selector">
+          <button 
+            className={`mode-btn ${editorMode === 'code' ? 'active' : ''}`}
+            onClick={() => setEditorMode('code')}
+          >
+            💻 Code Editor (JS/Python/Java)
+          </button>
+          <button 
+            className={`mode-btn ${editorMode === 'web' ? 'active' : ''}`}
+            onClick={() => setEditorMode('web')}
+          >
+            🌐 Web Development (HTML/CSS/JS)
+          </button>
+        </div>
+        
         <div className="editor-chat-container">
           <div className="editor-area">
-            <h3>📝 Code Editor</h3>
-            <CodeEditor 
-              code={code} 
-              onChange={sendCodeChange}
-            />
+            <h3>📝 {editorMode === 'code' ? 'Code Editor' : 'Web Editor'}</h3>
+            {editorMode === 'code' ? (
+              <CodeEditor 
+                code={code} 
+                onChange={setCode}
+              />
+            ) : (
+              <MultiLanguageEditor />
+            )}
           </div>
           
           <div className="chat-area">
@@ -101,10 +122,12 @@ function App() {
           </div>
         </div>
         
-        <div className="output-area">
-          <h3>▶️ Output</h3>
-          <Output code={code} />
-        </div>
+        {editorMode === 'code' && (
+          <div className="output-area">
+            <h3>▶️ Output</h3>
+            <Output code={code} />
+          </div>
+        )}
       </div>
     </div>
   );
