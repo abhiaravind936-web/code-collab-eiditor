@@ -36,7 +36,7 @@ const Output = ({ code }) => {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5000/execute/python', {
+      const response = await fetch('https://your-backend-url.onrender.com/execute/python', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ const Output = ({ code }) => {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5000/execute/java', {
+      const response = await fetch('https://your-backend-url.onrender.com/execute/java', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
