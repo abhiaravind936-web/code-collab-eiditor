@@ -7,7 +7,6 @@ const Output = ({ code }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const executeJavaScript = (codeToRun) => {
-    // Capture console.log
     const originalLog = console.log;
     let logs = [];
     console.log = (...args) => {
@@ -61,21 +60,57 @@ const Output = ({ code }) => {
     }
   };
 
+  const executeJava = async (codeToRun) => {
+    setIsLoading(true);
+    setOutput('');
+    setError('');
+    
+    try {
+      const response = await fetch('http://localhost:5000/execute/java', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: codeToRun }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        setError(data.error);
+        setOutput('');
+      } else {
+        setOutput(data.output);
+        setError('');
+      }
+    } catch (err) {
+      setError('Failed to connect to server. Make sure backend is running.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const runCode = () => {
     if (language === 'javascript') {
       executeJavaScript(code);
     } else if (language === 'python') {
       executePython(code);
+    } else if (language === 'java') {
+      executeJava(code);
     }
   };
 
   return (
     <div style={{ height: '250px', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
         {/* Language Selector Dropdown */}
         <select 
           value={language}
-          onChange={(e) => setLanguage(e.target.value)}
+          onChange={(e) => {
+            setLanguage(e.target.value);
+            setOutput('');
+            setError('');
+          }}
           style={{
             padding: '8px 16px',
             background: '#667eea',
@@ -88,6 +123,7 @@ const Output = ({ code }) => {
         >
           <option value="javascript">🟨 JavaScript</option>
           <option value="python">🐍 Python</option>
+          <option value="java">☕ Java</option>
         </select>
         
         {/* Run Button */}
@@ -110,7 +146,9 @@ const Output = ({ code }) => {
         
         {/* Language Info */}
         <span style={{ fontSize: '12px', color: '#666' }}>
-          {language === 'javascript' ? '⚡ Runs in browser' : '🐍 Runs on server'}
+          {language === 'javascript' && '⚡ Runs in browser'}
+          {language === 'python' && '🐍 Runs on server'}
+          {language === 'java' && '☕ Compiles & runs on server'}
         </span>
       </div>
       
@@ -126,7 +164,9 @@ const Output = ({ code }) => {
         fontSize: '13px'
       }}>
         {isLoading ? (
-          <div style={{ color: '#4CAF50' }}>⏳ Executing Python code...</div>
+          <div style={{ color: '#4CAF50' }}>
+            {language === 'java' ? '☕ Compiling and running Java code...' : '⏳ Executing code...'}
+          </div>
         ) : error ? (
           <pre style={{ color: '#f48771', margin: 0, whiteSpace: 'pre-wrap' }}>❌ Error: {error}</pre>
         ) : output ? (
@@ -134,6 +174,20 @@ const Output = ({ code }) => {
         ) : (
           <span style={{ color: '#858585' }}>
             ✨ Select language and click "Run Code" to execute...
+            {language === 'java' && (
+              <div style={{ marginTop: '10px', color: '#858585' }}>
+                💡 Java tip: Your class must be named "Main"
+                <br />
+                Example:
+                <pre style={{ color: '#4CAF50', marginTop: '5px' }}>
+{`public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello World!");
+    }
+}`}
+                </pre>
+              </div>
+            )}
           </span>
         )}
       </div>
