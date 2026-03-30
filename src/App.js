@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useSocket } from './hooks/usesocket';
+import { useSocket } from './hooks/usesocket';  // ← CHANGED: usesocket → useSocket (capital S)
 import CodeEditor from './components/Editor/Editor';
-import Chat from './components/Chat/chat';
-import Output from './components/output/output';
+import Chat from './components/Chat/chat';  // ← CHANGED: chat → Chat (capital C)
+import Output from './components/output/output';  // ← CHANGED: output → Output (capital O)
 import MultiLanguageEditor from './components/MultiLanguageEditor/MultiLanguageEditor';
 import './App.css';
 
@@ -16,6 +16,7 @@ function App() {
   const createRoom = () => {
     const newRoomId = Math.random().toString(36).substring(2, 8);
     const newUserId = `User_${Math.floor(Math.random() * 1000)}`;
+    console.log('📁 Creating room:', newRoomId);
     setRoomId(newRoomId);
     setUserId(newUserId);
     setJoined(true);
@@ -25,15 +26,32 @@ function App() {
     e.preventDefault();
     if (roomId.trim()) {
       const newUserId = `User_${Math.floor(Math.random() * 1000)}`;
+      console.log('🔗 Joining room:', roomId);
       setUserId(newUserId);
       setJoined(true);
     }
   };
 
-  const { messages, sendMessage } = useSocket(
+  // ← CHANGED: Now getting code and sendCodeChange from useSocket
+  const { code: socketCode, messages, sendCodeChange, sendMessage } = useSocket(
     joined ? roomId : null,
     joined ? userId : null
   );
+
+  // ← CHANGED: Sync socket code with local state
+  useEffect(() => {
+    if (socketCode) {
+      console.log('📥 Syncing code from server:', socketCode.substring(0, 50));
+      setCode(socketCode);
+    }
+  }, [socketCode]);
+
+  // ← CHANGED: Send code changes to other users
+  const handleCodeChange = (newCode) => {
+    console.log('📤 Sending code change to server');
+    setCode(newCode);
+    sendCodeChange(newCode);
+  };
 
   if (!joined) {
     return (
@@ -105,7 +123,7 @@ function App() {
             {editorMode === 'code' ? (
               <CodeEditor 
                 code={code} 
-                onChange={setCode}
+                onChange={handleCodeChange}  // ← CHANGED: using handleCodeChange instead of setCode
               />
             ) : (
               <MultiLanguageEditor />

@@ -80,8 +80,7 @@ io.on('connection', (socket) => {
     console.log('🔴 User disconnected:', socket.id);
   });
 });
-
-// Python code execution endpoint
+// Python code execution endpoint (UPDATED)
 app.post('/execute/python', (req, res) => {
   const { code } = req.body;
   
@@ -95,27 +94,45 @@ app.post('/execute/python', (req, res) => {
   // Write code to temp file
   fs.writeFileSync(tempFile, code);
   
-  // Execute Python code with timeout (5 seconds)
-  exec(`python "${tempFile}"`, { timeout: 5000 }, (error, stdout, stderr) => {
-    // Delete temp file
-    fs.unlinkSync(tempFile);
+  console.log('🐍 Executing Python code...');
+  
+  // Try different Python commands (for different systems)
+  const pythonCommands = ['python3', 'python', 'py'];
+  let currentIndex = 0;
+  
+  function tryExecute() {
+    if (currentIndex >= pythonCommands.length) {
+      fs.unlinkSync(tempFile);
+      return res.json({ error: 'Python is not installed on the server. Please install Python.' });
+    }
     
-    if (error) {
-      if (error.killed) {
-        return res.json({ error: 'Execution timed out (5 seconds limit)' });
+    const pythonCmd = pythonCommands[currentIndex];
+    console.log(`📁 Trying Python command: ${pythonCmd}`);
+    
+    // Execute Python code with timeout (5 seconds)
+    exec(`${pythonCmd} "${tempFile}"`, { timeout: 5000 }, (error, stdout, stderr) => {
+      if (error) {
+        console.log(`❌ ${pythonCmd} failed, trying next...`);
+        currentIndex++;
+        tryExecute();
+        return;
       }
-      return res.json({ error: stderr || error.message });
-    }
-    
-    if (stderr) {
-      return res.json({ error: stderr });
-    }
-    
-    res.json({ output: stdout });
-  });
+      
+      // Delete temp file
+      fs.unlinkSync(tempFile);
+      
+      if (stderr) {
+        return res.json({ error: stderr });
+      }
+      
+      console.log('✅ Python executed successfully');
+      res.json({ output: stdout });
+    });
+  }
+  
+  tryExecute();
 });
-
-// Java code execution endpoint (UPDATED with full paths)
+// Java code execution endpoint (UPDATED)
 app.post('/execute/java', (req, res) => {
   const { code } = req.body;
   
@@ -126,11 +143,39 @@ app.post('/execute/java', (req, res) => {
   // Extract class name from code (supports any public class name)
   const classNameMatch = code.match(/public\s+class\s+(\w+)/);
   if (!classNameMatch) {
-    return res.json({ error: 'Java code must have a public class. Example: public class HelloWorld { ... }' });
+    return res.json({ error: 'Java code must have a public class. Example: public class Main { ... }' });
   }
   
   const className = classNameMatch[1];
   const tempDir = path.join(__dirname, `temp_${Date.now()}`);
+  
+  console.log(`☕ Compiling Java class: ${className}`);
+  
+  // Try different Java commands
+  const javaCommands = ['javac', 'javac.exe'];
+  let javacCmd = null;
+  
+  // Find which javac works
+  for (const cmd of javaCommands) {
+    try {
+      const { execSync } = require('child_process');
+      execSync(`where ${cmd}`, { stdio: 'ignore' });
+      javacCmd = cmd;
+      break;
+    } catch(e) {
+      // Command not found
+    }
+  }
+  
+  // If on Windows with specific path
+  const windowsJavaPath = 'C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\javac.exe';
+  if (fs.existsSync(windowsJavaPath)) {
+    javacCmd = `"${windowsJavaPath}"`;
+  }
+  
+  if (!javacCmd) {
+    return res.json({ error: 'Java compiler (javac) not found on server' });
+  }
   
   try {
     // Create temp directory
@@ -140,19 +185,18 @@ app.post('/execute/java', (req, res) => {
     const javaFile = path.join(tempDir, `${className}.java`);
     fs.writeFileSync(javaFile, code);
     
-    console.log(`📁 Compiling: ${className}.java`);
-    
-    // Compile Java code using full path
-    exec(`"${JAVAC_PATH}" "${javaFile}"`, { timeout: 10000 }, (compileError, compileStdout, compileStderr) => {
+    // Compile Java code
+    exec(`${javacCmd} "${javaFile}"`, { timeout: 10000 }, (compileError, compileStdout, compileStderr) => {
       if (compileError) {
         fs.rmSync(tempDir, { recursive: true, force: true });
         return res.json({ error: `Compilation error:\n${compileStderr || compileError.message}` });
       }
       
-      console.log(`✅ Compiled successfully, running...`);
+      console.log(`✅ Java compiled successfully, running...`);
       
-      // Run Java code using full path
-      exec(`"${JAVA_PATH}" -cp "${tempDir}" ${className}`, { timeout: 5000 }, (runError, runStdout, runStderr) => {
+      // Run Java code
+      const javaCmd = javacCmd.replace('javac', 'java').replace('javac.exe', 'java.exe');
+      exec(`${javaCmd} -cp "${tempDir}" ${className}`, { timeout: 5000 }, (runError, runStdout, runStderr) => {
         // Clean up temp directory
         fs.rmSync(tempDir, { recursive: true, force: true });
         
@@ -167,11 +211,11 @@ app.post('/execute/java', (req, res) => {
           return res.json({ error: runStderr });
         }
         
+        console.log('✅ Java executed successfully');
         res.json({ output: runStdout });
       });
     });
   } catch (err) {
-    // Clean up on error
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }

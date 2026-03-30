@@ -31,65 +31,77 @@ const Output = ({ code }) => {
   };
 
   const executePython = async (codeToRun) => {
-    setIsLoading(true);
-    setOutput('');
-    setError('');
+  setIsLoading(true);
+  setOutput('');
+  setError('');
+  
+  // Get backend URL (works for both local and production)
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+  
+  console.log('🐍 Sending Python code to:', `${backendUrl}/execute/python`);
+  
+  try {
+    const response = await fetch(`${backendUrl}/execute/python`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code: codeToRun }),
+    });
     
-    try {
-      const response = await fetch('https://your-backend-url.onrender.com/execute/python', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: codeToRun }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        setError(data.error);
-        setOutput('');
-      } else {
-        setOutput(data.output);
-        setError('');
-      }
-    } catch (err) {
-      setError('Failed to connect to server. Make sure backend is running.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const executeJava = async (codeToRun) => {
-    setIsLoading(true);
-    setOutput('');
-    setError('');
+    const data = await response.json();
     
-    try {
-      const response = await fetch('https://your-backend-url.onrender.com/execute/java', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: codeToRun }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        setError(data.error);
-        setOutput('');
-      } else {
-        setOutput(data.output);
-        setError('');
-      }
-    } catch (err) {
-      setError('Failed to connect to server. Make sure backend is running.');
-    } finally {
-      setIsLoading(false);
+    if (data.error) {
+      setError(data.error);
+      setOutput('');
+    } else {
+      setOutput(data.output);
+      setError('');
     }
-  };
+  } catch (err) {
+    console.error('Python execution error:', err);
+    setError('Failed to connect to server. Make sure backend is running.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+const executeJava = async (codeToRun) => {
+  setIsLoading(true);
+  setOutput('');
+  setError('');
+  
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+  
+  console.log('☕ Sending Java code to:', `${backendUrl}/execute/java`);
+  
+  try {
+    const response = await fetch(`${backendUrl}/execute/java`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code: codeToRun }),
+    });
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      setError(data.error);
+      setOutput('');
+    } else {
+      setOutput(data.output);
+      setError('');
+    }
+  } catch (err) {
+    console.error('Java execution error:', err);
+    setError('Failed to connect to server. Make sure backend is running.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
+
+ 
   const runCode = () => {
     if (language === 'javascript') {
       executeJavaScript(code);
