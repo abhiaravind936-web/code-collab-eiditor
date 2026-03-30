@@ -41,7 +41,7 @@ const Output = ({ code }) => {
   console.log('🐍 Sending Python code to:', `${backendUrl}/execute/python`);
   
   try {
-    const response = await fetch(`${backendUrl}/execute/python`, {
+    const response = await fetch(`https://code-collab-editor.onrender.com/execute/python`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ const executeJava = async (codeToRun) => {
   console.log('☕ Sending Java code to:', `${backendUrl}/execute/java`);
   
   try {
-    const response = await fetch(`${backendUrl}/execute/java`, {
+    const response = await fetch(`https://code-collab-editor.onrender.com/execute/java`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
