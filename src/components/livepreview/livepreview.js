@@ -4,7 +4,6 @@ const LivePreview = ({ html, css, js }) => {
   const [previewContent, setPreviewContent] = useState('');
 
   useEffect(() => {
-    // Combine HTML, CSS, and JS into a complete HTML document
     const fullHtml = `
       <!DOCTYPE html>
       <html>
