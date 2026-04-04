@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-// IMPORTANT: Replace with your actual Render/Railway URL
-const SOCKET_URL = 'https://code-collab-eiditor.onrender.com'; // ← CHANGE THIS
+const SOCKET_URL = 'https://code-collab-eiditor.onrender.com';
 
 export const useSocket = (roomId, userId) => {
   const [socket, setSocket] = useState(null);
@@ -27,7 +26,6 @@ export const useSocket = (roomId, userId) => {
       newSocket.emit('join-room', roomId, userId);
     });
 
-    // Listen for code updates from other users
     newSocket.on('load-code', (initialCode) => {
       console.log('📥 Received initial code from server');
       setCode(initialCode);

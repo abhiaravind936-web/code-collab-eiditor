@@ -15,7 +15,7 @@ const Output = ({ code }) => {
     };
 
     try {
-      // eslint-disable-next-line no-eval
+    
       const result = eval(codeToRun);
       if (result !== undefined) {
         logs.push(`→ ${result}`);
@@ -35,7 +35,7 @@ const Output = ({ code }) => {
   setOutput('');
   setError('');
   
-  // Get backend URL (works for both local and production)
+
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
   
   console.log('🐍 Sending Python code to:', `${backendUrl}/execute/python`);

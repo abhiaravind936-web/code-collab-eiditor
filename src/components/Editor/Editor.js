@@ -4,7 +4,6 @@ import Editor from '@monaco-editor/react';
 const CodeEditor = ({ code, onChange, readOnly = false }) => {
   const [language, setLanguage] = useState('javascript');
 
-  // Default code templates for different languages
   const getDefaultCode = (lang) => {
     switch(lang) {
       case 'javascript':
@@ -40,9 +39,6 @@ const CodeEditor = ({ code, onChange, readOnly = false }) => {
 
   const handleLanguageChange = (newLanguage) => {
     setLanguage(newLanguage);
-    // Optional: Reset code to default template for that language
-    // Uncomment the line below if you want to auto-load default code when switching languages
-    // onChange(getDefaultCode(newLanguage));
   };
 
   return (

@@ -15,7 +15,6 @@ body {
   padding: 20px;
 }
 
-/* Landing Page */
 .landing {
   max-width: 500px;
   margin: 100px auto;
@@ -95,7 +94,6 @@ body {
   border-color: #667eea;
 }
 
-/* Workspace */
 .workspace {
   background: white;
   border-radius: 15px;
@@ -139,7 +137,6 @@ body {
   background: #45a049;
 }
 
-/* Editor & Chat Layout */
 .editor-chat-container {
   display: grid;
   grid-template-columns: 1fr 300px;
@@ -179,7 +176,6 @@ body {
   min-height: 200px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .editor-chat-container {
     grid-template-columns: 1fr;

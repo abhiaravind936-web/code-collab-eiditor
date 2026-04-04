@@ -18,8 +18,6 @@ const io = socketIo(server, {
   }
 });
 
-// ========== JAVA CONFIGURATION ==========
-// Use the full JDK path (Eclipse Adoptium)
 const JAVAC_PATH = 'C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\javac.exe';
 const JAVA_PATH = 'C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot\\bin\\java.exe';
 

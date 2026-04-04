@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useSocket } from './hooks/usesocket';  // ← CHANGED: usesocket → useSocket (capital S)
+import { useSocket } from './hooks/usesocket';  
 import CodeEditor from './components/Editor/Editor';
-import Chat from './components/Chat/chat';  // ← CHANGED: chat → Chat (capital C)
-import Output from './components/output/output';  // ← CHANGED: output → Output (capital O)
+import Chat from './components/Chat/chat';  
+import Output from './components/output/output'; 
 import MultiLanguageEditor from './components/MultiLanguageEditor/MultiLanguageEditor';
 import './App.css';
 
@@ -10,7 +10,7 @@ function App() {
   const [roomId, setRoomId] = useState('');
   const [userId, setUserId] = useState('');
   const [joined, setJoined] = useState(false);
-  const [editorMode, setEditorMode] = useState('code'); // 'code' or 'web'
+  const [editorMode, setEditorMode] = useState('code'); 
   const [code, setCode] = useState('');
 
   const createRoom = () => {
@@ -32,13 +32,12 @@ function App() {
     }
   };
 
-  // ← CHANGED: Now getting code and sendCodeChange from useSocket
+
   const { code: socketCode, messages, sendCodeChange, sendMessage } = useSocket(
     joined ? roomId : null,
     joined ? userId : null
   );
 
-  // ← CHANGED: Sync socket code with local state
   useEffect(() => {
     if (socketCode) {
       console.log('📥 Syncing code from server:', socketCode.substring(0, 50));
@@ -46,7 +45,6 @@ function App() {
     }
   }, [socketCode]);
 
-  // ← CHANGED: Send code changes to other users
   const handleCodeChange = (newCode) => {
     console.log('📤 Sending code change to server');
     setCode(newCode);
@@ -123,7 +121,7 @@ function App() {
             {editorMode === 'code' ? (
               <CodeEditor 
                 code={code} 
-                onChange={handleCodeChange}  // ← CHANGED: using handleCodeChange instead of setCode
+                onChange={handleCodeChange}  
               />
             ) : (
               <MultiLanguageEditor />
